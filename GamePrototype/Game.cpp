@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Game.h"
+#include "utils.h"
 
 Game::Game( const Window& window ) 
 	:BaseGame{ window }
@@ -23,6 +24,12 @@ void Game::Cleanup( )
 
 void Game::Update( float elapsedSec )
 {
+	MainLand.Update(elapsedSec);
+	Colony1.Update(elapsedSec);
+	Colony2.Update(elapsedSec);
+
+	MainLand.DoDamage(Colony1,elapsedSec);
+	MainLand.DoDamage(Colony2,elapsedSec);
 	// Check keyboard state
 	//const Uint8 *pStates = SDL_GetKeyboardState( nullptr );
 	//if ( pStates[SDL_SCANCODE_RIGHT] )
@@ -37,7 +44,11 @@ void Game::Update( float elapsedSec )
 
 void Game::Draw( ) const
 {
-	ClearBackground( );
+	ClearBackground();
+	MainLand.Draw();
+	Colony1.Draw();
+	Colony2.Draw();
+	
 }
 
 void Game::ProcessKeyDownEvent( const SDL_KeyboardEvent & e )
@@ -70,6 +81,11 @@ void Game::ProcessMouseMotionEvent( const SDL_MouseMotionEvent& e )
 
 void Game::ProcessMouseDownEvent( const SDL_MouseButtonEvent& e )
 {
+	Point2f mousePos{ float(e.x),float(e.y) };
+
+	Colony1.Select(mousePos);
+	Colony2.Select(mousePos);
+
 	//std::cout << "MOUSEBUTTONDOWN event: ";
 	//switch ( e.button )
 	//{
@@ -105,6 +121,6 @@ void Game::ProcessMouseUpEvent( const SDL_MouseButtonEvent& e )
 
 void Game::ClearBackground( ) const
 {
-	glClearColor( 0.0f, 0.0f, 0.3f, 1.0f );
+	glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
 	glClear( GL_COLOR_BUFFER_BIT );
 }
