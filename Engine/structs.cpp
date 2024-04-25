@@ -56,6 +56,16 @@ Color4f::Color4f( float r, float g, float b, float a )
 {
 }
 
+bool Color4f::operator!=(const Color4f& rhs)
+{
+	return r != rhs.r or g != rhs.g or b != rhs.b or a != rhs.a;
+}
+
+bool Color4f::operator==(const Color4f& rhs)
+{
+	return r == rhs.r and g == rhs.g and b == rhs.b and a == rhs.a;
+}
+
 //-----------------------------------------------------------------
 // Circlef Constructors
 //-----------------------------------------------------------------

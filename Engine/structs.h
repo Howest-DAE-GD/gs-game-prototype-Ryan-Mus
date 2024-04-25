@@ -45,6 +45,9 @@ struct Color4f
 	float g;
 	float b;
 	float a;
+
+	bool operator!=(const Color4f& rhs);
+	bool operator==(const Color4f& rhs);
 };
 
 struct Circlef

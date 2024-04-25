@@ -1,6 +1,7 @@
 #pragma once
 #include "BaseGame.h"
 #include "Land.h"
+#include <vector>
 class Game : public BaseGame
 {
 public:
@@ -24,9 +25,10 @@ public:
 
 private:
 	Land MainLand{ Ellipsef{GetViewPort().width / 2 ,60,100,30},Color4f{0.f,1.f,0.f,1.f},10000,10,-20 };
-	Land Colony1{ Ellipsef{100.f,GetViewPort().height - 100.f,40,20},Color4f{1.f,0.f,0.f,1.f},1000,3,5 };
-	Land Colony2{ Ellipsef{400.f,GetViewPort().height - 80.f,50,25},Color4f{1.f,0.f,0.f,1.f},1000,3,5 };
 
+	std::vector<Land*> m_Colonies;
+	
+	Rectf BuyTroopsButton{ 5,5,20,20 };
 	// FUNCTIONS
 	void Initialize();
 	void Cleanup( );

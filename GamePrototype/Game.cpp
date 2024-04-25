@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Game.h"
 #include "utils.h"
-
+#include "structs.h"
 Game::Game( const Window& window ) 
 	:BaseGame{ window }
 {
@@ -15,39 +15,44 @@ Game::~Game( )
 
 void Game::Initialize( )
 {
-	
+	m_Colonies.push_back( new Land{Ellipsef{100.f,GetViewPort().height - 100.f,40,20},Color4f{1.f,0.f,0.f,1.f},3000,5,5});
+	m_Colonies.push_back( new Land{ Ellipsef{400.f,GetViewPort().height - 80.f,50,25},Color4f{1.f,0.f,0.f,1.f},5000,10,7 });
+	m_Colonies.push_back(new Land{ Ellipsef{700.f,GetViewPort().height - 150.f,80,45},Color4f{1.f,0.f,0.f,1.f},8000,20,15 });
+	m_Colonies.push_back(new Land{ Ellipsef{500.f,GetViewPort().height - 200.f,20,15},Color4f{1.f,0.f,0.f,1.f},1000,1,2 });
+	m_Colonies.push_back(new Land{ Ellipsef{300.f,GetViewPort().height - 250.f,100,60},Color4f{1.f,0.f,0.f,1.f},20000,50,20 });
 }
 
 void Game::Cleanup( )
 {
+	for (Land* colonies : m_Colonies)
+	{
+		delete colonies;
+	}
 }
 
 void Game::Update( float elapsedSec )
 {
 	MainLand.Update(elapsedSec);
-	Colony1.Update(elapsedSec);
-	Colony2.Update(elapsedSec);
-
-	MainLand.DoDamage(Colony1,elapsedSec);
-	MainLand.DoDamage(Colony2,elapsedSec);
-	// Check keyboard state
-	//const Uint8 *pStates = SDL_GetKeyboardState( nullptr );
-	//if ( pStates[SDL_SCANCODE_RIGHT] )
-	//{
-	//	std::cout << "Right arrow key is down\n";
-	//}
-	//if ( pStates[SDL_SCANCODE_LEFT] && pStates[SDL_SCANCODE_UP])
-	//{
-	//	std::cout << "Left and up arrow keys are down\n";
-	//}
+	for (Land* coloniesL1 : m_Colonies)
+	{
+		coloniesL1->Update(elapsedSec);
+		MainLand.DoDamage(*coloniesL1,elapsedSec);
+	}
 }
 
 void Game::Draw( ) const
 {
 	ClearBackground();
+	utils::SetColor(Color4f{ 1.f,1.f,0.f,1.f });
+	utils::FillRect(BuyTroopsButton);
 	MainLand.Draw();
-	Colony1.Draw();
-	Colony2.Draw();
+	MainLand.DrawStats();
+	
+	for (Land* colonies : m_Colonies)
+	{
+		colonies->Draw();
+		colonies->DrawStats();
+	}
 	
 }
 
@@ -83,8 +88,19 @@ void Game::ProcessMouseDownEvent( const SDL_MouseButtonEvent& e )
 {
 	Point2f mousePos{ float(e.x),float(e.y) };
 
-	Colony1.Select(mousePos);
-	Colony2.Select(mousePos);
+	MainLand.Select(mousePos);
+	for (Land* colonies : m_Colonies)
+	{
+		colonies->Select(mousePos);
+	}
+	if (utils::IsPointInRect(mousePos, BuyTroopsButton))
+	{
+		if (MainLand.GetIsSelected()) MainLand.BuyTroops();
+			for (Land* colonies : m_Colonies)
+			{
+				if (colonies->GetIsSelected() and (colonies->GetColor() == MainLand.GetColor()))colonies->BuyTroops();
+			}
+	}
 
 	//std::cout << "MOUSEBUTTONDOWN event: ";
 	//switch ( e.button )
