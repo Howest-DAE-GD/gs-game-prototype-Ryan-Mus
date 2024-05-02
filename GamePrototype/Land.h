@@ -11,6 +11,7 @@ public:
 
 	void TakeOver(Land& target);
 	void BuyTroops();
+	void TransferTroops(Land& target);
 	void Select(Point2f mousePos);
 	bool GetIsSelected();
 	Color4f GetColor();

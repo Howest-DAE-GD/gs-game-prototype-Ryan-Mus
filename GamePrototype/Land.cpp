@@ -46,19 +46,28 @@ void Land::Update(float elapsedSec)
 
 void Land::DoDamage(Land& target, float elapsedSec)
 {
+	
 	DAccSec += elapsedSec;
-	if(DAccSec > 1.f)
+	if (target.IsSelected and target.Color != Color)
 	{
-		DAccSec -= 1.f;
-		if (target.IsSelected and target.Color != Color)
+		if (DAccSec > 1.f)
 		{
-				target.HP -= Troops * 10;
-				std::cout << "dealt dmg to " << target.HP << std::endl;
-				if (rand() % 11 == 1)
+			DAccSec = 0;
+			target.HP -= Troops * 5;
+			std::cout << "dealt dmg to " << target.HP << std::endl;
+			if (rand() % 5 == 1 and Troops < target.Troops)
+			{
+				Troops -= 1*(rand()%(target.Troops/10)+1);
+				if (Troops < 0) Troops = 0;
+			}
+			else
+			{
+				if (rand() % 10 == 0)
 				{
-					Troops -= target.Troops/10;
+					Troops--;
 					if (Troops < 0) Troops = 0;
 				}
+			}
 		}
 	}
 	if (target.HP < 0)
@@ -73,15 +82,24 @@ void Land::TakeOver(Land& target)
 	Healing += target.Healing;
 	Troops += target.Troops;
 
-	target.HP = 500;
+	target.HP = 1000;
 	target.Troops = 0;
 	target.Color = Color;
 }
 
 void Land::BuyTroops()
 {
-	HP -= 100;
-	Troops++;
+	if (HP > 400)
+	{
+		HP -= 400;
+		Troops++;
+	}
+}
+
+void Land::TransferTroops(Land& target)
+{
+	target.Troops += Troops;
+	Troops = 0;
 }
 
 void Land::Select(Point2f mousePos)

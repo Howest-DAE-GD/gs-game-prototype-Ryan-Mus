@@ -15,10 +15,10 @@ Game::~Game( )
 
 void Game::Initialize( )
 {
-	m_Colonies.push_back( new Land{Ellipsef{100.f,GetViewPort().height - 100.f,40,20},Color4f{1.f,0.f,0.f,1.f},3000,5,5});
-	m_Colonies.push_back( new Land{ Ellipsef{400.f,GetViewPort().height - 80.f,50,25},Color4f{1.f,0.f,0.f,1.f},5000,10,7 });
+	m_Colonies.push_back( new Land{Ellipsef{100.f,GetViewPort().height - 100.f,40,20},Color4f{1.f,0.f,0.f,1.f},3000,30,10});
+	m_Colonies.push_back( new Land{ Ellipsef{400.f,GetViewPort().height - 80.f,50,25},Color4f{1.f,0.f,0.f,1.f},5000,5,7 });
 	m_Colonies.push_back(new Land{ Ellipsef{700.f,GetViewPort().height - 150.f,80,45},Color4f{1.f,0.f,0.f,1.f},8000,20,15 });
-	m_Colonies.push_back(new Land{ Ellipsef{500.f,GetViewPort().height - 200.f,20,15},Color4f{1.f,0.f,0.f,1.f},1000,1,2 });
+	m_Colonies.push_back(new Land{ Ellipsef{500.f,GetViewPort().height - 200.f,20,15},Color4f{1.f,0.f,0.f,1.f},1000,15,5 });
 	m_Colonies.push_back(new Land{ Ellipsef{300.f,GetViewPort().height - 250.f,100,60},Color4f{1.f,0.f,0.f,1.f},20000,50,20 });
 }
 
@@ -32,11 +32,16 @@ void Game::Cleanup( )
 
 void Game::Update( float elapsedSec )
 {
+	
 	MainLand.Update(elapsedSec);
 	for (Land* coloniesL1 : m_Colonies)
 	{
 		coloniesL1->Update(elapsedSec);
 		MainLand.DoDamage(*coloniesL1,elapsedSec);
+		if (coloniesL1->GetColor() == MainLand.GetColor())
+		{
+			coloniesL1->TransferTroops(MainLand);
+		}
 	}
 }
 
