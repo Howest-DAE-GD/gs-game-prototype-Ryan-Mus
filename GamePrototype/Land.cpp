@@ -57,8 +57,16 @@ void Land::DoDamage(Land& target, float elapsedSec)
 			std::cout << "dealt dmg to " << target.HP << std::endl;
 			if (rand() % 5 == 1 and Troops < target.Troops)
 			{
-				Troops -= 1*(rand()%(target.Troops/10)+1);
+				Troops -= 1*(rand()%(target.Troops/10+1));
 				if (Troops < 0) Troops = 0;
+			}
+			if (rand() % 5 == 1 and Troops > target.Troops and target.Troops>0)
+			{
+				target.Troops -= 1 * (rand() % (Troops / 10 + 1));
+				if (target.Troops <= 0)
+				{
+					target.Troops = 0;
+				}
 			}
 			else
 			{
@@ -110,14 +118,24 @@ void Land::Select(Point2f mousePos)
 	}
 }
 
-bool Land::GetIsSelected()
+bool Land::GetIsSelected()const
 {
 	return IsSelected;
 }
 
-Color4f Land::GetColor()
+Color4f Land::GetColor()const
 {
 	return Color;
+}
+
+int Land::GetHP()const
+{
+	return HP;
+}
+
+Circlef Land::GetLandSize() const
+{
+	return Circlef{ LandSize.center,LandSize.radiusX };
 }
 
 

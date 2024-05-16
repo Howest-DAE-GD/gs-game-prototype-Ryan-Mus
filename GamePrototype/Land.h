@@ -13,8 +13,10 @@ public:
 	void BuyTroops();
 	void TransferTroops(Land& target);
 	void Select(Point2f mousePos);
-	bool GetIsSelected();
-	Color4f GetColor();
+	bool GetIsSelected() const;
+	Color4f GetColor() const;
+	int GetHP() const;
+	Circlef GetLandSize() const;
 	
 private:
 	Color4f Color;
