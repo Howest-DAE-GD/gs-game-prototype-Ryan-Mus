@@ -22,6 +22,7 @@ void Game::Initialize( )
 	CreateRandomLand(2);
 	CreateRandomLand(2);
 	CreateRandomLand(3);
+	m_DrawPoints.reserve(5);
 }
 
 void Game::Cleanup( )
@@ -42,17 +43,20 @@ void Game::Update( float elapsedSec )
 		for (Land* coloniesL1 : m_Colonies)
 		{
 			coloniesL1->Update(elapsedSec);
-			MainLand.DoDamage(*coloniesL1, elapsedSec);
+			if (MainLand.DoDamage(*coloniesL1, elapsedSec))
+			{
+				m_DrawPoints.push_back(coloniesL1->GetPos());
+			}
 			if (coloniesL1->GetColor() == MainLand.GetColor())
 			{
 				coloniesL1->TransferTroops(MainLand);
 			}
 		}
 	}
-
+	
 }
 
-void Game::Draw( ) const
+void Game::Draw( )
 {
 	ClearBackground();
 
@@ -60,14 +64,23 @@ void Game::Draw( ) const
 	glTranslatef(GetViewPort().width / 2, GetViewPort().height / 2, 0.f);
 	glScalef(scale, scale, scale);
 	glTranslatef(-GetViewPort().width / 2, -GetViewPort().height / 2, 0.f);
+	glTranslatef(-translateV.x, -translateV.y, 0);
 
 	
 	MainLand.Draw();
 	MainLand.DrawStats();
-	
+	for (Point2f points : m_DrawPoints)
+	{
+		utils::SetColor(Color4f{ 0.f,0.f,1.f,1.f });
+		utils::DrawLine(MainLand.GetPos(), points);
+		m_DrawPoints.pop_back();
+	}
 	for (Land* colonies : m_Colonies)
 	{
 		colonies->Draw();
+	}
+	for (Land* colonies : m_Colonies)
+	{
 		colonies->DrawStats();
 	}
 	glPopMatrix();
@@ -82,18 +95,36 @@ void Game::Draw( ) const
 		Texture Text{ "GAME OVER","JMH Typewriter.ttf",50,Color4f{1.f,0.f,0.f,1.f} };
 		Text.Draw(Rectf{ 270,300,Text.GetWidth(),Text.GetHeight() });
 	}
+	bool Victory{ true };
+	for (Land* coloniesL1 : m_Colonies)
+	{
+		if (coloniesL1->GetColor() != MainLand.GetColor())
+		{
+			Victory = false;
+		}
+	}
 	utils::SetColor(Color4f{ 0.7f,0.7f,0.7f,1.f });
 	utils::FillRect(InfoButton);
 	Text = Texture{ "INFO","JMH Typewriter.ttf",12,Color4f{0.f,0.f,0.f,1.f} };
 	Text.Draw(Rectf{ GetViewPort().width - 80,8,Text.GetWidth(),Text.GetHeight() });
 	if (ShowInfo)
 	{
-		Texture Text{ "Select land to colonise or buy troops","JMH Typewriter.ttf",12,Color4f{1.f,1.f,1.f,1.f} };
-		Text.Draw(Rectf{ GetViewPort().width - 250,60,Text.GetWidth(),Text.GetHeight() });
-		Text = Texture{ "More troops = more dmg","JMH Typewriter.ttf",12,Color4f{1.f,1.f,1.f,1.f} };
-		Text.Draw(Rectf{ GetViewPort().width - 250,40,Text.GetWidth(),Text.GetHeight() });
+		Texture Text{ "LMB: Select","JMH Typewriter.ttf",12,Color4f{1.f,1.f,1.f,1.f} };
+		Text.Draw(Rectf{ GetViewPort().width - 150,105,Text.GetWidth(),Text.GetHeight() });
+		Text = Texture{ "RMB: Deselect all","JMH Typewriter.ttf",12,Color4f{1.f,1.f,1.f,1.f} };
+		Text.Draw(Rectf{ GetViewPort().width - 150,85,Text.GetWidth(),Text.GetHeight() });
+		Text = Texture{ "MMB: Move camera/zoom","JMH Typewriter.ttf",12,Color4f{1.f,1.f,1.f,1.f} };
+		Text.Draw(Rectf{ GetViewPort().width - 150,65,Text.GetWidth(),Text.GetHeight() });
+		Text = Texture{ "Win by colonising all","JMH Typewriter.ttf",12,Color4f{1.f,1.f,1.f,1.f} };
+		Text.Draw(Rectf{ GetViewPort().width - 150,45,Text.GetWidth(),Text.GetHeight() });
+		Text = Texture{ "healing en troops are transfered with capturing","JMH Typewriter.ttf",12,Color4f{1.f,1.f,1.f,1.f} };
+		Text.Draw(Rectf{ GetViewPort().width - 320,25,Text.GetWidth(),Text.GetHeight() });
 	}
-	
+	if (Victory)
+	{
+		Texture Text{ "VICTORY","JMH Typewriter.ttf",50,Color4f{0.f,1.f,0.f,1.f} };
+		Text.Draw(Rectf{ 300,300,Text.GetWidth(),Text.GetHeight() });
+	}
 }
 
 void Game::ProcessKeyDownEvent( const SDL_KeyboardEvent & e )
@@ -121,7 +152,13 @@ void Game::ProcessKeyUpEvent( const SDL_KeyboardEvent& e )
 
 void Game::ProcessMouseMotionEvent( const SDL_MouseMotionEvent& e )
 {
-	//std::cout << "MOUSEMOTION event: " << e.x << ", " << e.y << std::endl;
+	if (isClicking)
+	{
+		currentPoint = Point2f{ float(e.x),float(e.y) };
+		translateV = Vector2f{ clickPoint.x - currentPoint.x,clickPoint.y - currentPoint.y };
+		std::cout << translateV << std::endl;
+	}
+	
 }
 
 void Game::ProcessMouseDownEvent( const SDL_MouseButtonEvent& e )
@@ -129,6 +166,7 @@ void Game::ProcessMouseDownEvent( const SDL_MouseButtonEvent& e )
 	float x{ float((e.x - GetViewPort().width / 2) / scale + GetViewPort().width / 2) };
 	float y{ float((e.y - GetViewPort().height / 2) / scale + GetViewPort().height / 2) };
 	Point2f mousePosWorld{ x,y };
+	mousePosWorld += translateV;
 	Point2f mousePosUI{ float(e.x),float(e.y) };
 
 	if (e.button == SDL_BUTTON_LEFT)
@@ -152,24 +190,29 @@ void Game::ProcessMouseDownEvent( const SDL_MouseButtonEvent& e )
 		}
 	}
 
-	//std::cout << "MOUSEBUTTONDOWN event: ";
-	//switch ( e.button )
-	//{
-	//case SDL_BUTTON_LEFT:
-	//	std::cout << " left button " << std::endl;
-	//	break;
-	//case SDL_BUTTON_RIGHT:
-	//	std::cout << " right button " << std::endl;
-	//	break;
-	//case SDL_BUTTON_MIDDLE:
-	//	std::cout << " middle button " << std::endl;
-	//	break;
-	//}
-	
+	if (e.button == SDL_BUTTON_MIDDLE)
+	{
+		isClicking = true;
+		clickPoint = mousePosUI + translateV;
+		std::cout << "clicked right\n";
+	}
+	if (e.button == SDL_BUTTON_RIGHT)
+	{
+		for (Land* colonies : m_Colonies)
+		{
+			colonies->Deselect();
+		}
+		MainLand.Deselect();
+	}
 }
 
 void Game::ProcessMouseUpEvent( const SDL_MouseButtonEvent& e )
 {
+	if (e.button == SDL_BUTTON_MIDDLE)
+	{
+		isClicking = false;
+		std::cout << "stopped clicked right\n";
+	}
 	//std::cout << "MOUSEBUTTONUP event: ";
 	//switch ( e.button )
 	//{
@@ -202,7 +245,7 @@ void Game::ProcessMouseWheelEvent(const SDL_MouseWheelEvent& e)
 
 
 	//scale = 0.5f;
-	std::cout << scale << std::endl;
+	//std::cout << scale << std::endl;
 }
 
 void Game::ClearBackground( ) const
@@ -223,11 +266,11 @@ void Game::CreateRandomLand(int size)
 		break;
 	case 2:
 		Size = float(rand() % 3 * 10 + 40);
-		m_Colonies.push_back(new Land{ Ellipsef{(rand() % int(GetViewPort().width - 100.f) + 50.f),(rand() % int(GetViewPort().height - 200.f) + 150.f),Size,Size} ,Color4f{1.f,0.f,0.f,1.f},int(Size + Size * 100),rand() % 30 + 10,int((Size + Size) / 10 )});
+		m_Colonies.push_back(new Land{ Ellipsef{(rand() % int(GetViewPort().width - 100.f) + 50.f),(rand() % int(GetViewPort().height - 200.f) + 150.f),Size,Size} ,Color4f{1.f,0.f,0.f,1.f},int(Size + Size * 100),rand() % 30 + 10,int((Size + Size) / 7 )});
 		break;
 	case 3:
 		Size = float(rand() % 5 * 10 + 60);
-		m_Colonies.push_back(new Land{ Ellipsef{(rand() % int(GetViewPort().width - 100.f) + 50.f),(rand() % int(GetViewPort().width - 200.f) + 150.f),Size,Size} ,Color4f{1.f,0.f,0.f,1.f},int(Size + Size * 100),rand() % 100 + 10,int((Size + Size) / 10 )});
+		m_Colonies.push_back(new Land{ Ellipsef{(rand() % int(GetViewPort().width - 100.f) + 50.f),(rand() % int(GetViewPort().width - 200.f) + 150.f),Size,Size} ,Color4f{1.f,0.f,0.f,1.f},int(Size + Size * 100),rand() % 90 + 20,int((Size + Size) / 5 )});
 		break;
 	default:
 		break;

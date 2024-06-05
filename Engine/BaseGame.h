@@ -20,7 +20,7 @@ public:
 	{
 		
 	}
-	virtual void Draw() const
+	virtual void Draw()
 	{
 		
 	}

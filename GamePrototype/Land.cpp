@@ -14,7 +14,7 @@ void Land::Draw() const
 	if (IsSelected)
 	{
 		utils::SetColor(Color4f{1.f,1.f,1.f,1.f});
-		utils::DrawEllipse(LandSize,3);
+		utils::DrawEllipse(LandSize,6);
 	}
 	utils::SetColor(Color);
 	utils::FillEllipse(LandSize);
@@ -44,12 +44,13 @@ void Land::Update(float elapsedSec)
 	
 }
 
-void Land::DoDamage(Land& target, float elapsedSec)
+bool Land::DoDamage(Land& target, float elapsedSec)
 {
-	
+	bool CanDMG{ false };
 	DAccSec += elapsedSec;
 	if (target.IsSelected and target.Color != Color)
 	{
+		CanDMG = true;
 		if (DAccSec > 1.f)
 		{
 			DAccSec = 0;
@@ -82,7 +83,7 @@ void Land::DoDamage(Land& target, float elapsedSec)
 	{
 		TakeOver(target);
 	}
-	
+	return CanDMG;
 }
 
 void Land::TakeOver(Land& target)
@@ -118,6 +119,11 @@ void Land::Select(Point2f mousePos)
 	}
 }
 
+void Land::Deselect()
+{
+	IsSelected = false;
+}
+
 bool Land::GetIsSelected()const
 {
 	return IsSelected;
@@ -136,6 +142,11 @@ int Land::GetHP()const
 Circlef Land::GetLandSize() const
 {
 	return Circlef{ LandSize.center,LandSize.radiusX };
+}
+
+Point2f Land::GetPos() const
+{
+	return LandSize.center;
 }
 
 

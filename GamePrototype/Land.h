@@ -7,16 +7,18 @@ public:
 	void Draw() const;
 	void DrawStats() const;
 	void Update(float elapsedSec);
-	void DoDamage(Land& target, float elapsedSec);
+	bool DoDamage(Land& target, float elapsedSec);
 
 	void TakeOver(Land& target);
 	void BuyTroops();
 	void TransferTroops(Land& target);
 	void Select(Point2f mousePos);
+	void Deselect();
 	bool GetIsSelected() const;
 	Color4f GetColor() const;
 	int GetHP() const;
 	Circlef GetLandSize() const;
+	Point2f GetPos() const;
 	
 private:
 	Color4f Color;
